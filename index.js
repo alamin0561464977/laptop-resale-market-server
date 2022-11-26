@@ -30,6 +30,7 @@ async function run() {
         const companyCollection = client.db("laptop-resale-market").collection("company");
         const productsCollection = client.db("laptop-resale-market").collection("products");
         const buyersCollection = client.db("laptop-resale-market").collection("buyers");
+        const ordersCollection = client.db("laptop-resale-market").collection("orders");
 
         // --------------------- end ----------------------------
 
@@ -85,6 +86,13 @@ async function run() {
             const result = await productsCollection.insertOne(productInfo);
             console.log(result)
             res.send(result);
+        });
+
+        app.get('/products-by-email', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
         })
         // ----------------------- end --------------------------
 
@@ -105,8 +113,14 @@ async function run() {
             const query = { isSeller: true }
             const buyers = await buyersCollection.find(query).toArray();
             res.send(buyers);
+        });
+
+        // -------------------- ordersCollection ----------------
+        app.post('/order', async (req, res) => {
+            const orderInfo = req.body;
+            const result = await ordersCollection.insertOne(orderInfo);
+            res.send(result);
         })
-        // ----------------------- end --------------------------
 
 
 
