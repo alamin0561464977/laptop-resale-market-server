@@ -45,9 +45,15 @@ async function run() {
             const user = await buyersCollection.findOne(query);
             res.send(user?.isSeller);
         });
+        app.get('/is-admin', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await buyersCollection.findOne(query);
+            res.send(user?.admin);
+        });
 
         // -------------------- isAdmin ------------------------
-        app.put('/admin', async (req, res) => {
+        app.put('/mek-admin', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
             const option = { upSert: true };
@@ -72,6 +78,13 @@ async function run() {
             const products = await productsCollection.find(query).toArray();
             res.send(products);
 
+        });
+
+        app.post('/product', async (req, res) => {
+            const productInfo = req.body;
+            const result = await productsCollection.insertOne(productInfo);
+            console.log(result)
+            res.send(result);
         })
         // ----------------------- end --------------------------
 
