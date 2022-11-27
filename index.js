@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 
 
 // ------------ MongoDB Connect start ---------------
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_password}@cluster0.blopt.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 // ------------------ end -------------------------
@@ -31,6 +31,7 @@ async function run() {
         const productsCollection = client.db("laptop-resale-market").collection("products");
         const buyersCollection = client.db("laptop-resale-market").collection("buyers");
         const ordersCollection = client.db("laptop-resale-market").collection("orders");
+        const advertisesCollection = client.db("laptop-resale-market").collection("advertises");
 
         // --------------------- end ----------------------------
 
@@ -45,6 +46,12 @@ async function run() {
             const query = { email: email };
             const user = await buyersCollection.findOne(query);
             res.send(user?.isSeller);
+        });
+        app.get('/seller', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await buyersCollection.findOne(query);
+            res.send(user);
         });
         app.get('/is-admin', async (req, res) => {
             const email = req.query.email;
@@ -81,6 +88,13 @@ async function run() {
 
         });
 
+        app.get('/products-by-email', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
+        });
+
         app.post('/product', async (req, res) => {
             const productInfo = req.body;
             const result = await productsCollection.insertOne(productInfo);
@@ -88,12 +102,13 @@ async function run() {
             res.send(result);
         });
 
-        app.get('/products-by-email', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email };
-            const products = await productsCollection.find(query).toArray();
-            res.send(products);
+        app.post('/advertise', async (req, res) => {
+            const advertise = req.body;
+            const result = await advertisesCollection.insertOne(advertise);
+            res.send(result);
+
         })
+
         // ----------------------- end --------------------------
 
         // ------------------ buyersCollection ------------------
@@ -115,6 +130,26 @@ async function run() {
             res.send(buyers);
         });
 
+        app.put('/verify', async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            const option = { upSert: true };
+            const upDateDoc = {
+                $set: { verify: true }
+            };
+            const result = await buyersCollection.updateOne(filter, upDateDoc, option);
+            console.log(email);
+            res.send(result);
+        })
+
+        app.delete('/deleteBuyer/:id', async (req, res) => {
+            const email = req.params.id;
+            const query = { email: email };
+            const result = await buyersCollection.deleteOne(query);
+            console.log(result);
+            res.send(result);
+        })
+
         // -------------------- ordersCollection ----------------
         app.post('/order', async (req, res) => {
             const orderInfo = req.body;
@@ -125,7 +160,16 @@ async function run() {
             const email = req.query.email;
             const query = { email: email };
             const orders = await ordersCollection.find(query).toArray();
+            // console.log(orders)
             res.send(orders);
+        });
+        app.delete('/deleteOrder/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            console.log(query)
+            const result = await ordersCollection.deleteOne(query);
+            console.log(result);
+            res.send(result);
         })
 
 
