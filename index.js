@@ -82,7 +82,10 @@ async function run() {
         // ------------ products collection start ---------------
         app.get('/products/:companyName', async (req, res) => {
             const companyName = req.params.companyName;
-            const query = { companyName: companyName };
+            const query = {
+                companyName: companyName,
+                available: true
+            };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
 
@@ -90,10 +93,33 @@ async function run() {
 
         app.get('/products-by-email', async (req, res) => {
             const email = req.query.email;
-            const query = { email: email };
+            const query = { email: email, available: true };
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         });
+
+        app.get('/advertise', async (req, res) => {
+            const query = {
+                available: true,
+                advertise: true
+            }
+            const advertise = await productsCollection.find(query).limit(6).toArray();
+            res.send(advertise);
+        });
+
+        app.put('/advertise/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const option = { upSert: true };
+            const upDateDoc = {
+                $set: {
+                    advertise: true
+                }
+            };
+            const result = await productsCollection.updateOne(query, upDateDoc, option);
+            console.log(result)
+            res.send(result);
+        })
 
         app.post('/product', async (req, res) => {
             const productInfo = req.body;
@@ -102,14 +128,25 @@ async function run() {
             res.send(result);
         });
 
-        app.post('/advertise', async (req, res) => {
-            const advertise = req.body;
-            const result = await advertisesCollection.insertOne(advertise);
+        app.put('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const option = { upSert: true };
+            const upDateDoc = {
+                $set: { available: false }
+            };
+            const result = await productsCollection.updateOne(query, upDateDoc, option);
+            console.log(result);
             res.send(result);
+        });
 
+        app.delete('/deleteProduct/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
+            res.send(result);
         })
 
-        // ----------------------- end --------------------------
 
         // ------------------ buyersCollection ------------------
         app.post('/buyer', async (req, res) => {
@@ -156,6 +193,13 @@ async function run() {
             const result = await ordersCollection.insertOne(orderInfo);
             res.send(result);
         });
+
+        app.put('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+        })
+
+
         app.get('/ordersByEmail', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
@@ -170,7 +214,7 @@ async function run() {
             const result = await ordersCollection.deleteOne(query);
             console.log(result);
             res.send(result);
-        })
+        });
 
 
 
