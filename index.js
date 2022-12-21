@@ -199,10 +199,9 @@ async function run() {
 
 
         // ------------------ buyersCollection ------------------
-        app.post('/buyer', verifyJWT, async (req, res) => {
+        app.post('/buyer', async (req, res) => {
             const buyer = req.body;
             const result = await buyersCollection.insertOne(buyer);
-            console.log(result);
             res.send(result);
         });
 
@@ -213,8 +212,9 @@ async function run() {
         })
         app.get('/sellers', verifyJWT, async (req, res) => {
             const query = { isSeller: true }
-            const buyers = await buyersCollection.find(query).toArray();
-            res.send(buyers);
+            const sellers = await buyersCollection.find(query).toArray();
+            console.log(sellers, 777)
+            res.send(sellers);
         });
 
         app.put('/verify', verifyJWT, async (req, res) => {
@@ -252,6 +252,7 @@ async function run() {
 
         app.get('/ordersByEmail', verifyJWT, async (req, res) => {
             const email = req.query.email;
+            console.log(email)
             const query = { email: email };
             const orders = await ordersCollection.find(query).toArray();
             // console.log(orders)
